@@ -1,0 +1,11 @@
+# Environment
+.env
+p-rag/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data
+data/
