@@ -12,3 +12,5 @@ pyyaml==6.0.2
 loguru==0.7.2
 
 sentence-transformers==3.0.1
+
+qdrant-client==1.11.1

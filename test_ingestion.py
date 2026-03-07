@@ -1,6 +1,7 @@
 from ingestion.loader import load_all
 from chunking.chunker import chunk_documents
 from embeddings.embedder import load_embedder, embed_chunks
+from retrieval.vector_store import get_client, create_collection, store_chunks, search
 
 # Load
 docs = load_all(folder_path="data")
@@ -19,3 +20,19 @@ vectors = embed_chunks(chunks, embedder)
 print(f"Total vectors: {len(vectors)}")
 print(f"Vector size: {len(vectors[0])} dimensions")
 print(f"First 5 numbers of vector 1: {vectors[0][:5]}")
+
+# Store in Qdrant
+client = get_client()
+create_collection(client, "resume", vector_size=384)
+store_chunks(client, "resume", chunks, vectors)
+
+# Search — ask a question
+query = "What are Rithik's skills?"
+query_vector = embedder.embed_query(query)
+results = search(client, "resume", query_vector, top_k=3)
+
+print(f"\n🔍 Query: {query}")
+print(f"\nTop 3 relevant chunks:")
+for i, r in enumerate(results):
+    print(f"\n--- Result {i+1} (score: {r.score:.3f}) ---")
+    print(r.payload["text"])
