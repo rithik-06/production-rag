@@ -70,3 +70,4 @@ def search(client: QdrantClient, collection_name: str, query_vector: list, top_k
 
     logger.info(f"Found {len(results)} results ✅")
     return results
+    

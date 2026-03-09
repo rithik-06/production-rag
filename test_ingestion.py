@@ -4,40 +4,44 @@ from embeddings.embedder import load_embedder, embed_chunks
 from retrieval.vector_store import get_client, create_collection, store_chunks, search
 from generation.generator import generate_answer
 from loguru import logger
+from cache.cache import get_client as get_redis_client, get_cached_answer, set_cached_answer
+import time
 
 
-# Load
+# Load → Chunk → Embed → Store
 docs = load_all(folder_path="data")
-
-# Chunk
 chunks = chunk_documents(docs)
-
-# Embed
 embedder = load_embedder()
 vectors = embed_chunks(chunks, embedder)
-
-# Store in Qdrant - delete first to avoid duplicates
 client = get_client()
-
-# Delete old collection if exists
 client.delete_collection("resume")
-logger.info("Old collection deleted ✅")
-
 create_collection(client, "resume", vector_size=384)
 store_chunks(client, "resume", chunks, vectors)
 
-# Search
+# Redis client
+redis_client = get_redis_client()
+
 question = "What is Rithik's education?"
-query_vector = embedder.embed_query(question)
-results = search(client, "resume", query_vector, top_k=5)
 
-# DEBUG - see what chunks are retrieved
-print("\n📄 Retrieved chunks:")
-for i, r in enumerate(results):
-    print(f"\n--- Chunk {i+1} (score: {r.score:.3f}) ---")
-    print(r.payload["text"][:200])
+# First request — should be a cache MISS
+print("\n--- First Request ---")
+start = time.time()
+cached = get_cached_answer(redis_client, question)
+if cached:
+    answer = cached
+else:
+    query_vector = embedder.embed_query(question)
+    results = search(client, "resume", query_vector, top_k=3)
+    answer = generate_answer(question, results)
+    set_cached_answer(redis_client, question, answer)
+print(f"Answer: {answer}")
+print(f"Time: {time.time() - start:.2f}s")
 
-# Generate answer
-answer = generate_answer(question, results)
-print(f"\n🔍 Question: {question}")
-print(f"\n🤖 Answer:\n{answer}")
+# Second request — should be a cache HIT (much faster!)
+print("\n--- Second Request (same question) ---")
+start = time.time()
+cached = get_cached_answer(redis_client, question)
+if cached:
+    answer = cached
+print(f"Answer: {answer}")
+print(f"Time: {time.time() - start:.2f}s")
