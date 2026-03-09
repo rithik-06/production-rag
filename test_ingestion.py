@@ -3,6 +3,8 @@ from chunking.chunker import chunk_documents
 from embeddings.embedder import load_embedder, embed_chunks
 from retrieval.vector_store import get_client, create_collection, store_chunks, search
 from generation.generator import generate_answer
+from loguru import logger
+
 
 # Load
 docs = load_all(folder_path="data")
