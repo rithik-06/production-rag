@@ -2,6 +2,7 @@ from ingestion.loader import load_all
 from chunking.chunker import chunk_documents
 from embeddings.embedder import load_embedder, embed_chunks
 from retrieval.vector_store import get_client, create_collection, store_chunks, search
+from generation.generator import generate_answer
 
 # Load
 docs = load_all(folder_path="data")
@@ -36,3 +37,12 @@ print(f"\nTop 3 relevant chunks:")
 for i, r in enumerate(results):
     print(f"\n--- Result {i+1} (score: {r.score:.3f}) ---")
     print(r.payload["text"])
+
+# Generate answer
+question = "What are Rithik's skills?"
+question = "What is Rithik's education?"
+answer = generate_answer(question, results)
+
+print(f"\n🔍 Question: {question}")
+print(f"\n🤖 Answer:\n{answer}")
+question = "What are Rithik's skills?"
