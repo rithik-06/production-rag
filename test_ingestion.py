@@ -6,43 +6,36 @@ from generation.generator import generate_answer
 
 # Load
 docs = load_all(folder_path="data")
-print(f"Pages loaded: {len(docs)}")
 
 # Chunk
 chunks = chunk_documents(docs)
-print(f"Total chunks: {len(chunks)}")
-print(f"\nChunk 1:\n{chunks[0].page_content}")
-print(f"\nChunk 2:\n{chunks[1].page_content}")
 
-# Embed  ← is this part there?
+# Embed
 embedder = load_embedder()
 vectors = embed_chunks(chunks, embedder)
 
-print(f"Total vectors: {len(vectors)}")
-print(f"Vector size: {len(vectors[0])} dimensions")
-print(f"First 5 numbers of vector 1: {vectors[0][:5]}")
-
-# Store in Qdrant
+# Store in Qdrant - delete first to avoid duplicates
 client = get_client()
+
+# Delete old collection if exists
+client.delete_collection("resume")
+logger.info("Old collection deleted ✅")
+
 create_collection(client, "resume", vector_size=384)
 store_chunks(client, "resume", chunks, vectors)
 
-# Search — ask a question
-query = "What are Rithik's skills?"
-query_vector = embedder.embed_query(query)
-results = search(client, "resume", query_vector, top_k=3)
+# Search
+question = "What is Rithik's education?"
+query_vector = embedder.embed_query(question)
+results = search(client, "resume", query_vector, top_k=5)
 
-print(f"\n🔍 Query: {query}")
-print(f"\nTop 3 relevant chunks:")
+# DEBUG - see what chunks are retrieved
+print("\n📄 Retrieved chunks:")
 for i, r in enumerate(results):
-    print(f"\n--- Result {i+1} (score: {r.score:.3f}) ---")
-    print(r.payload["text"])
+    print(f"\n--- Chunk {i+1} (score: {r.score:.3f}) ---")
+    print(r.payload["text"][:200])
 
 # Generate answer
-question = "What are Rithik's skills?"
-question = "What is Rithik's education?"
 answer = generate_answer(question, results)
-
 print(f"\n🔍 Question: {question}")
 print(f"\n🤖 Answer:\n{answer}")
-question = "What are Rithik's skills?"
