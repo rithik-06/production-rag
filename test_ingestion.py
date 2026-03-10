@@ -3,11 +3,13 @@ from chunking.chunker import chunk_documents
 from embeddings.embedder import load_embedder, embed_chunks
 from retrieval.vector_store import get_client, create_collection, store_chunks, search
 from generation.generator import generate_answer
-from loguru import logger
 from cache.cache import get_client as get_redis_client, get_cached_answer, set_cached_answer
 from evaluation.evaluator import evaluate_rag
-import time
+from tracking.tracker import init_mlflow, log_run
+from loguru import logger
 
+# Initialize MLflow
+init_mlflow()
 
 # Load → Chunk → Embed → Store
 docs = load_all(folder_path="data")
@@ -46,5 +48,20 @@ for question in questions:
 print("\n⏳ Running RAGAS evaluation...")
 scores = evaluate_rag(questions, answers, contexts)
 print(f"\n📊 RAGAS Scores:")
-print(f"Faithfulness:     {scores['faithfulness']}")
-print(f"Answer Relevancy: {scores['answer_relevancy']}")
+print(f"Faithfulness: {scores['faithfulness']}")
+
+# Log to MLflow
+log_run(
+    params={
+        "chunk_size": 256,
+        "chunk_overlap": 64,
+        "embedding_model": "intfloat/e5-small-v2",
+        "llm_model": "llama-3.1-8b-instant",
+        "top_k": 3
+    },
+    metrics=scores,
+    run_name="baseline-run"
+)
+
+print("\n✅ Run logged to MLflow!")
+print("👉 Check it at: http://localhost:5000")
