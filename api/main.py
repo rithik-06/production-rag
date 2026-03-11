@@ -3,7 +3,18 @@ from pydantic import BaseModel
 from loguru import logger
 import shutil
 import os
+import time
 from dotenv import load_dotenv
+
+from prometheus_client import make_asgi_app
+from tracking.metrics import (
+    QUERY_COUNTER,
+    CACHE_HIT_COUNTER,
+    CACHE_MISS_COUNTER,
+    RESPONSE_TIME,
+    FAITHFULNESS_GAUGE,
+    DOCS_INGESTED
+)
 
 from ingestion.loader import load_all
 from chunking.chunker import chunk_documents
@@ -22,6 +33,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Mount Prometheus metrics endpoint
+metrics_app = make_asgi_app()
+app.mount("/metrics", metrics_app)
+
 # ── Initialize all clients on startup ─────────────────
 embedder = None
 qdrant_client = None
@@ -32,17 +47,13 @@ async def startup():
     global embedder, qdrant_client, redis_client
     logger.info("Starting up RAG API...")
 
-    # Load embedding model
     embedder = load_embedder()
 
-    # Connect to Qdrant
     qdrant_client = get_client()
     create_collection(qdrant_client, "documents", vector_size=384)
 
-    # Connect to Redis
     redis_client = get_redis_client()
 
-    # Initialize MLflow
     init_mlflow()
 
     logger.info("RAG API ready ✅")
@@ -69,14 +80,10 @@ def health():
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
-    """
-    Upload a PDF document.
-    Ingests, chunks, embeds and stores it in Qdrant.
-    """
+    """Upload a PDF document and ingest it into the RAG pipeline."""
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files supported")
 
-    # Save uploaded file
     os.makedirs("data", exist_ok=True)
     file_path = f"data/{file.filename}"
     with open(file_path, "wb") as f:
@@ -84,11 +91,12 @@ async def upload(file: UploadFile = File(...)):
 
     logger.info(f"File uploaded: {file.filename}")
 
-    # Run ingestion pipeline
     docs = load_all(folder_path="data")
     chunks = chunk_documents(docs)
     vectors = embed_chunks(chunks, embedder)
     store_chunks(qdrant_client, "documents", chunks, vectors)
+
+    DOCS_INGESTED.inc(len(chunks))
 
     return {
         "message": f"Successfully ingested {file.filename}",
@@ -98,21 +106,24 @@ async def upload(file: UploadFile = File(...)):
 
 @app.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest):
-    """
-    Ask a question and get an answer from the RAG pipeline.
-    Checks Redis cache first before running full pipeline.
-    """
+    """Ask a question and get an answer from the RAG pipeline."""
     question = request.question
     logger.info(f"Query received: {question}")
+
+    QUERY_COUNTER.inc()
+    start = time.time()
 
     # Check cache first
     cached_answer = get_cached_answer(redis_client, question)
     if cached_answer:
+        CACHE_HIT_COUNTER.inc()
         return QueryResponse(
             question=question,
             answer=cached_answer,
             cached=True
         )
+
+    CACHE_MISS_COUNTER.inc()
 
     # Run full pipeline
     query_vector = embedder.embed_query(question)
@@ -121,6 +132,9 @@ async def query(request: QueryRequest):
 
     # Cache the answer
     set_cached_answer(redis_client, question, answer)
+
+    # Track response time
+    RESPONSE_TIME.observe(time.time() - start)
 
     return QueryResponse(
         question=question,
