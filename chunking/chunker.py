@@ -27,6 +27,9 @@ def chunk_documents(documents: list, chunk_size: int = 512, chunk_overlap: int =
     chunks = splitter.split_documents(documents)
 
     logger.info(f"Total chunks created: {len(chunks)}")
-    logger.info(f"Avg chunk size: {sum(len(c.page_content) for c in chunks) // len(chunks)} chars")
+    if chunks:
+        logger.info(f"Avg chunk size: {sum(len(c.page_content) for c in chunks) // len(chunks)} chars")
+    else:
+        logger.info("No chunks created")
 
     return chunks
