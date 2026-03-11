@@ -4,5 +4,6 @@ global:
 scrape_configs:
   - job_name: "rag-api"
     static_configs:
-      - targets: ["host.docker.internal:8000"]
-    metrics_path: "/metrics"
+      - targets: ["192.168.18.113:8000"]
+    metrics_path: "/metrics/"
+    
