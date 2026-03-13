@@ -1,32 +1,168 @@
-# 🏭 Production RAG Pipeline
+# 🧠 RAG Pipeline — Document Intelligence System
 
-A production-grade Retrieval-Augmented Generation (RAG) system with 
-evaluation, monitoring, and CI/CD.
+Ask questions about any document using AI. Upload a PDF, get instant answers powered by semantic search and LLMs.
 
-## 🚀 Tech Stack
-- **Framework:** LangChain + LlamaIndex
-- **Vector DB:** Qdrant
-- **Embeddings:** HuggingFace E5
-- **Reranker:** Cohere
-- **Cache:** Redis
-- **Evaluation:** RAGAS
-- **Tracking:** MLflow
-- **Monitoring:** Grafana + Prometheus
-- **API:** FastAPI
-- **CI/CD:** GitHub Actions
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## 📦 Modules
-- `ingestion/` — multi-source document loaders
-- `chunking/` — semantic chunking engine
-- `embeddings/` — embedding models
-- `retrieval/` — hybrid search + reranker
-- `generation/` — LLM + prompt templates
-- `evaluation/` — RAGAS scoring + drift detection
-- `cache/` — Redis caching layer
-- `guard/` — LLM safety checks
-- `tracking/` — MLflow experiment logging
-- `api/` — FastAPI endpoints
-- `monitoring/` — Grafana dashboards
+---
 
-## 🛠️ Setup
-coming soon...
+## 🚀 What it does
+
+Upload any PDF → Ask questions → Get accurate AI-powered answers
+
+Built with a full MLOps stack including evaluation, monitoring, caching, and automated pipelines.
+
+---
+
+## 🏗️ Architecture
+```
+PDF / Document
+      ↓
+Ingestion → Chunking → Embeddings (HuggingFace E5)
+      ↓
+Qdrant Vector DB
+      ↓
+Semantic Search + Reranking
+      ↓
+Groq LLM (Llama 3.1)
+      ↓
+Answer
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool |
+|-------|------|
+| Framework | LangChain |
+| Vector DB | Qdrant |
+| Embeddings | HuggingFace E5 |
+| LLM | Groq (Llama 3.1) |
+| Cache | Redis |
+| Evaluation | RAGAS |
+| Experiment Tracking | MLflow |
+| Monitoring | Grafana + Prometheus |
+| Orchestration | Apache Airflow |
+| API | FastAPI |
+| UI | Streamlit |
+| CI/CD | GitHub Actions |
+| Containerization | Docker |
+
+---
+
+## 📦 Project Structure
+```
+rag-pipeline/
+├── ingestion/        # document loaders (PDF, web, SQL)
+├── chunking/         # semantic text splitting
+├── embeddings/       # HuggingFace embedding models
+├── retrieval/        # vector search + reranking
+├── generation/       # LLM answer generation
+├── evaluation/       # RAGAS quality scoring
+├── cache/            # Redis caching layer
+├── tracking/         # MLflow experiment logging
+├── orchestration/    # Airflow DAGs + pipeline
+├── api/              # FastAPI endpoints
+├── app.py            # Streamlit UI
+└── tests/            # unit + integration tests
+```
+
+---
+
+## ⚙️ Setup
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/rithik-06/production-rag.git
+cd production-rag
+```
+
+### 2. Create virtual environment
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Set up environment variables
+```bash
+cp .env.example .env
+# Fill in your API keys
+```
+
+### 5. Start services
+```bash
+docker run -d -p 6333:6333 qdrant/qdrant
+docker run -d -p 6379:6379 redis:7.4-alpine
+```
+
+### 6. Start the API
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+```
+
+### 7. Start the UI
+```bash
+streamlit run app.py
+```
+
+---
+
+## 🔑 Environment Variables
+```bash
+GROQ_API_KEY=your_groq_key
+QDRANT_HOST=localhost
+REDIS_HOST=localhost
+MLFLOW_TRACKING_URI=http://localhost:5000
+RAG_API_KEY=your_secret_key
+```
+
+---
+
+## 📊 Evaluation
+
+Every query is evaluated using RAGAS metrics:
+
+| Metric | Description |
+|--------|-------------|
+| Faithfulness | Is the answer grounded in retrieved chunks? |
+| Answer Relevancy | Does it actually answer the question? |
+| Context Recall | Were the right chunks retrieved? |
+
+---
+
+## 🔗 Services
+
+| Service | URL |
+|---------|-----|
+| API Docs | http://localhost:8000/docs |
+| Streamlit UI | http://localhost:8501 |
+| MLflow | http://localhost:5000 |
+| Grafana | http://localhost:3000 |
+| Qdrant | http://localhost:6333/dashboard |
+
+---
+
+## 📝 License
+
+MIT License — free to use, modify and distribute.
+
+---
+
+## 👤 Author
+
+Built by **Rithik Tiwari** • [LinkedIn](https://linkedin.com/in/rithiktiwari) • [GitHub](https://github.com/rithik-06)
+```
+
+---
+
+**GitHub repo description:**
+```
+AI-powered document Q&A system — upload any PDF and ask questions using semantic search, LLMs, and a full MLOps stack (Qdrant, Redis, RAGAS, MLflow, Grafana, Airflow)
