@@ -1,78 +1,110 @@
 # 🧠 RAG Pipeline — Document Intelligence System
 
-Ask questions about any document using AI. Upload a PDF, get instant answers powered by semantic search and LLMs.
+> Upload any PDF. Ask questions. Get accurate AI-powered answers instantly.
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
 ---
 
-## 🚀 What it does
+## ✨ What it does
 
-Upload any PDF → Ask questions → Get accurate AI-powered answers
-
-Built with a full MLOps stack including evaluation, monitoring, caching, and automated pipelines.
+| Step | Action |
+|------|--------|
+| 📄 Upload | Drop any PDF into the system |
+| 🔍 Search | Semantic search finds the most relevant chunks |
+| 🤖 Answer | Groq LLM generates a precise, grounded answer |
+| ⚡ Cache | Redis caches repeated queries instantly |
+| 📊 Evaluate | RAGAS scores every answer for quality |
 
 ---
 
 ## 🏗️ Architecture
+
 ```
-PDF / Document
-      ↓
-Ingestion → Chunking → Embeddings (HuggingFace E5)
-      ↓
-Qdrant Vector DB
-      ↓
-Semantic Search + Reranking
-      ↓
-Groq LLM (Llama 3.1)
-      ↓
-Answer
+User
+ │
+ ▼
+Streamlit UI  ──────────────────────────────────────────►  FastAPI
+                                                              │
+                    ┌─────────────────────────────────────────┤
+                    │                                         │
+                    ▼                                         ▼
+             Redis Cache                              RAG Pipeline
+             (instant reply)                               │
+                                                           │
+                              ┌────────────────────────────┤
+                              │            │               │
+                              ▼            ▼               ▼
+                          Ingestion    Chunking       Embeddings
+                          (PDF/Web)    (Semantic)     (HF E5)
+                                                          │
+                                                          ▼
+                                                    Qdrant Vector DB
+                                                          │
+                                                          ▼
+                                                    Groq LLM (Llama 3.1)
+                                                          │
+                                                          ▼
+                                                       Answer
+                                                          │
+                              ┌───────────────────────────┤
+                              │                           │
+                              ▼                           ▼
+                         RAGAS Eval                   MLflow
+                         (quality score)              (tracking)
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Tool |
-|-------|------|
-| Framework | LangChain |
-| Vector DB | Qdrant |
-| Embeddings | HuggingFace E5 |
-| LLM | Groq (Llama 3.1) |
-| Cache | Redis |
-| Evaluation | RAGAS |
-| Experiment Tracking | MLflow |
-| Monitoring | Grafana + Prometheus |
-| Orchestration | Apache Airflow |
-| API | FastAPI |
-| UI | Streamlit |
-| CI/CD | GitHub Actions |
-| Containerization | Docker |
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| 🖥️ UI | Streamlit | User interface |
+| ⚡ API | FastAPI | REST endpoints |
+| 🔍 Vector DB | Qdrant | Semantic search |
+| 🧠 Embeddings | HuggingFace E5 | Text → vectors |
+| 🤖 LLM | Groq (Llama 3.1) | Answer generation |
+| 💾 Cache | Redis | Speed up repeated queries |
+| 📊 Evaluation | RAGAS | Answer quality scoring |
+| 🧪 Tracking | MLflow | Experiment logging |
+| 📈 Monitoring | Grafana + Prometheus | Live dashboards |
+| ⏰ Orchestration | Apache Airflow | Automated pipelines |
+| 🐳 Container | Docker | Service management |
+| 🔄 CI/CD | GitHub Actions | Auto test & deploy |
 
 ---
 
-## 📦 Project Structure
+## 📁 Project Structure
+
 ```
 rag-pipeline/
-├── ingestion/        # document loaders (PDF, web, SQL)
-├── chunking/         # semantic text splitting
-├── embeddings/       # HuggingFace embedding models
-├── retrieval/        # vector search + reranking
-├── generation/       # LLM answer generation
-├── evaluation/       # RAGAS quality scoring
-├── cache/            # Redis caching layer
-├── tracking/         # MLflow experiment logging
-├── orchestration/    # Airflow DAGs + pipeline
-├── api/              # FastAPI endpoints
-├── app.py            # Streamlit UI
-└── tests/            # unit + integration tests
+│
+├── 📂 ingestion/          # PDF, web, SQL document loaders
+├── 📂 chunking/           # Semantic text splitting
+├── 📂 embeddings/         # HuggingFace embedding models
+├── 📂 retrieval/          # Vector search + reranking
+├── 📂 generation/         # LLM answer generation
+├── 📂 evaluation/         # RAGAS quality scoring
+├── 📂 cache/              # Redis caching layer
+├── 📂 tracking/           # MLflow + Prometheus metrics
+├── 📂 orchestration/      # Airflow DAGs + RAG pipeline
+├── 📂 api/                # FastAPI endpoints
+├── 📂 tests/              # Unit + integration tests
+├── 📂 .github/workflows/  # CI/CD pipelines
+│
+├── 🐳 Dockerfile
+├── 🐳 docker-compose.yml
+├── 📱 app.py              # Streamlit UI
+└── 📋 requirements.txt
 ```
 
 ---
 
-## ⚙️ Setup
+## 🚀 Quick Start
 
 ### 1. Clone the repo
 ```bash
@@ -83,7 +115,7 @@ cd production-rag
 ### 2. Create virtual environment
 ```bash
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Linux/Mac
 ```
 
 ### 3. Install dependencies
@@ -91,13 +123,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
+### 4. Set environment variables
 ```bash
 cp .env.example .env
-# Fill in your API keys
+# Add your API keys to .env
 ```
 
-### 5. Start services
+### 5. Start services with Docker
 ```bash
 docker run -d -p 6333:6333 qdrant/qdrant
 docker run -d -p 6379:6379 redis:7.4-alpine
@@ -116,53 +148,60 @@ streamlit run app.py
 ---
 
 ## 🔑 Environment Variables
+
 ```bash
+# LLM
 GROQ_API_KEY=your_groq_key
+
+# Vector DB
 QDRANT_HOST=localhost
+QDRANT_PORT=6333
+
+# Cache
 REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Tracking
 MLFLOW_TRACKING_URI=http://localhost:5000
+
+# Security
 RAG_API_KEY=your_secret_key
 ```
 
 ---
 
-## 📊 Evaluation
+## 📊 RAGAS Evaluation Metrics
 
-Every query is evaluated using RAGAS metrics:
-
-| Metric | Description |
-|--------|-------------|
-| Faithfulness | Is the answer grounded in retrieved chunks? |
-| Answer Relevancy | Does it actually answer the question? |
-| Context Recall | Were the right chunks retrieved? |
+| Metric | Description | Target |
+|--------|-------------|--------|
+| Faithfulness | Answer grounded in retrieved chunks | > 0.75 |
+| Answer Relevancy | Directly answers the question | > 0.70 |
+| Context Recall | Right chunks were retrieved | > 0.65 |
 
 ---
 
 ## 🔗 Services
 
-| Service | URL |
-|---------|-----|
-| API Docs | http://localhost:8000/docs |
-| Streamlit UI | http://localhost:8501 |
-| MLflow | http://localhost:5000 |
-| Grafana | http://localhost:3000 |
-| Qdrant | http://localhost:6333/dashboard |
+| Service | URL | Purpose |
+|---------|-----|---------|
+| 🖥️ Streamlit UI | http://localhost:8501 | Main user interface |
+| ⚡ API Docs | http://localhost:8000/docs | Swagger documentation |
+| 🧪 MLflow | http://localhost:5000 | Experiment tracking |
+| 📈 Grafana | http://localhost:3000 | Monitoring dashboards |
+| 📡 Prometheus | http://localhost:9090 | Raw metrics |
+| 🔍 Qdrant | http://localhost:6333/dashboard | Vector DB browser |
+
+---
+
+## 👤 Author
+
+**Rithik Tiwari** — AI/ML Engineer
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/rithiktiwari)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/rithik-06)
 
 ---
 
 ## 📝 License
 
 MIT License — free to use, modify and distribute.
-
----
-
-## 👤 Author
-
-Built by **Rithik Tiwari** • [LinkedIn](https://linkedin.com/in/rithiktiwari) • [GitHub](https://github.com/rithik-06)
-```
-
----
-
-**GitHub repo description:**
-```
-AI-powered document Q&A system — upload any PDF and ask questions using semantic search, LLMs, and a full MLOps stack (Qdrant, Redis, RAGAS, MLflow, Grafana, Airflow)
